@@ -181,6 +181,10 @@
             android:name=".activity.setup.AccountSetupCheckSettings"
             android:configChanges="keyboardHidden|orientation|locale"
             android:label="@string/account_setup_check_settings_title"/>
+        <activity
+            android:name=".activity.setup.AccountSetupAutoconfig"
+            android:configChanges="keyboardHidden|orientation|locale"
+            android:label=""/>
 
         <activity
             android:name=".activity.setup.AccountSettings"

@@ -64,6 +64,7 @@ public class AccountSetupBasics extends K9Activity
     private EditText mPasswordView;
     private CheckBox mClientCertificateCheckBox;
     private ClientCertificateSpinner mClientCertificateSpinner;
+    private Button mAutoButton;
     private Button mNextButton;
     private Button mManualSetupButton;
     private Account mAccount;
@@ -86,9 +87,11 @@ public class AccountSetupBasics extends K9Activity
         mPasswordView = (EditText)findViewById(R.id.account_password);
         mClientCertificateCheckBox = (CheckBox)findViewById(R.id.account_client_certificate);
         mClientCertificateSpinner = (ClientCertificateSpinner)findViewById(R.id.account_client_certificate_spinner);
+        mAutoButton = (Button)findViewById(R.id.auto_button);
         mNextButton = (Button)findViewById(R.id.next);
         mManualSetupButton = (Button)findViewById(R.id.manual_setup);
         mShowPasswordCheckBox = (CheckBox) findViewById(R.id.show_password);
+        mAutoButton.setOnClickListener(this);
         mNextButton.setOnClickListener(this);
         mManualSetupButton.setOnClickListener(this);
     }
@@ -98,7 +101,7 @@ public class AccountSetupBasics extends K9Activity
         mPasswordView.addTextChangedListener(this);
         mClientCertificateCheckBox.setOnCheckedChangeListener(this);
         mClientCertificateSpinner.setOnClientCertificateChangedListener(this);
-        mShowPasswordCheckBox.setOnCheckedChangeListener (new OnCheckedChangeListener() {
+        mShowPasswordCheckBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 showPassword(isChecked);
@@ -215,6 +218,7 @@ public class AccountSetupBasics extends K9Activity
                         || (clientCertificateChecked && clientCertificateAlias != null))
                 && mEmailValidator.isValidAddressOnly(email);
 
+        mAutoButton.setEnabled(valid);
         mNextButton.setEnabled(valid);
         mManualSetupButton.setEnabled(valid);
         /*
@@ -351,6 +355,7 @@ public class AccountSetupBasics extends K9Activity
              * We don't have default settings for this account, start the manual
              * setup process.
              */
+            Log.e(K9.LOG_TAG, "Check here for autoconfig");
             onManualSetup();
             return;
         }
@@ -421,6 +426,48 @@ public class AccountSetupBasics extends K9Activity
         finish();
     }
 
+    private void onAutoSetup() {
+        String email = mEmailView.getText().toString();
+        String[] emailParts = splitEmail(email);
+        String user = emailParts[0];
+        String domain = emailParts[1];
+
+        /*
+        String password = null;
+        String clientCertificateAlias = null;
+        AuthType authenticationType;
+        if (mClientCertificateCheckBox.isChecked()) {
+            authenticationType = AuthType.EXTERNAL;
+            clientCertificateAlias = mClientCertificateSpinner.getAlias();
+        } else {
+            authenticationType = AuthType.PLAIN;
+            password = mPasswordView.getText().toString();
+        }
+
+        if (mAccount == null) {
+            mAccount = Preferences.getPreferences(this).newAccount();
+        }
+        mAccount.setName(getOwnerName());
+        mAccount.setEmail(email);
+
+        // set default uris
+        // NOTE: they will be changed again in AccountSetupAccountType!
+        ServerSettings storeServer = new ServerSettings(ServerSettings.Type.IMAP, "mail." + domain, -1,
+                ConnectionSecurity.SSL_TLS_REQUIRED, authenticationType, user, password, clientCertificateAlias);
+        ServerSettings transportServer = new ServerSettings(ServerSettings.Type.SMTP, "mail." + domain, -1,
+                ConnectionSecurity.SSL_TLS_REQUIRED, authenticationType, user, password, clientCertificateAlias);
+        String storeUri = RemoteStore.createStoreUri(storeServer);
+        String transportUri = Transport.createTransportUri(transportServer);
+        mAccount.setStoreUri(storeUri);
+        mAccount.setTransportUri(transportUri);
+
+        setupFolderNames(domain);*/
+
+        AccountSetupAutoconfig.actionAutoconfig(this, email, domain);
+
+        finish();
+    }
+
     private void setupFolderNames(String domain) {
         mAccount.setDraftsFolderName(getString(R.string.special_mailbox_name_drafts));
         mAccount.setTrashFolderName(getString(R.string.special_mailbox_name_trash));
@@ -443,6 +490,9 @@ public class AccountSetupBasics extends K9Activity
             break;
         case R.id.manual_setup:
             onManualSetup();
+            break;
+        case R.id.auto_button:
+            onAutoSetup();
             break;
         }
     }
